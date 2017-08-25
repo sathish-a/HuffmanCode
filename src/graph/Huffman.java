@@ -47,10 +47,12 @@ public class Huffman {
 
     Map<Integer,Node> map;
     Map<Character,String> encodedMap;
+    Map<String,Character> decodedMap;
 
     public Huffman() {
         map = new TreeMap<>();
         encodedMap = new HashMap<>();
+        decodedMap = new HashMap<>();
         head = null;
     }
 
@@ -63,7 +65,7 @@ public class Huffman {
     public void showData()
     {
         for (Map.Entry<Integer,Node> set : map.entrySet())
-            System.out.println(set);
+            System.out.println(set.getValue());
     }
 
     public boolean addTwoElements()
@@ -76,32 +78,25 @@ public class Huffman {
             Node newNode = new Node();
             int cha = 0;
             int addup = 0;
-            Node delA ,delB;
-            delA = delB = null;
+
             for (Map.Entry<Integer,Node> set : map.entrySet())
             {
                 if(c<2)
                 {
                     addup+=set.getKey();
                     cha+=set.getValue().id;
-                    if(c==0) {
-                        delA = set.getValue();
-                        newNode.left = set.getValue();
-                    }
-                    else {
-                        delB = set.getValue();
-                        newNode.right = set.getValue();
-                    }
-                }
+                    if(c==0) newNode.left = set.getValue();
+                    else newNode.right = set.getValue();
+                }else break;
                 c++;
             }
 
             newNode.id = (char) (cha);
             newNode.f = addup;
-            if(delA != null && delB != null)
+            if(newNode.left != null && newNode.right != null)
             {
-                map.remove(delA.f,delA);
-                map.remove(delB.f,delB);
+                map.remove(newNode.left.f);
+                map.remove(newNode.right.f);
                 map.put(addup,newNode);
             }
 
@@ -119,7 +114,7 @@ public class Huffman {
         head = set.getValue();
 
         codeData(head,"");
-
+        obtainDecodeMap();
     }
 
     public void codeData(Node x,String y)
@@ -133,6 +128,12 @@ public class Huffman {
         }
     }
 
+    public void obtainDecodeMap()
+    {
+        for (Map.Entry<Character,String > set : encodedMap.entrySet())
+            decodedMap.put(set.getValue(),set.getKey());
+    }
+
 
     public void showEncodedData()
     {
@@ -140,6 +141,36 @@ public class Huffman {
         {
             System.out.println(set.getKey()+"->"+set.getValue());
         }
+    }
+
+    public String compress(String x)
+    {
+        char[] chars = x.toCharArray();
+        StringBuilder sb = new StringBuilder();
+        for(char a: chars)
+            sb.append(encodedMap.get(a));
+
+        return sb.toString();
+    }
+
+    public String extract(String x)
+    {
+        StringBuilder sb = new StringBuilder();
+        StringBuilder check = new StringBuilder();
+        char[] chars = x.toCharArray();
+        int from = 0;
+
+        for(int i=0;i<x.length();i++)
+        {
+            check.append(chars[i]);
+            if(decodedMap.containsKey(check.toString()))
+            {
+                sb.append(decodedMap.get(check.toString()));
+                check = new StringBuilder();
+            }
+        }
+
+        return sb.toString();
     }
 
     public static void main(String[] a)
@@ -153,6 +184,14 @@ public class Huffman {
         huffman.addDatas('e',16);
         huffman.compute();
         huffman.showEncodedData();
+        String compress = "abaabdedbff";
+        String compressed = huffman.compress(compress);
+        System.out.println(compress);
+        System.out.println(compressed);
+        String decompress = huffman.extract(compressed);
+        System.out.println(decompress);
+        if(compress.contentEquals(decompress)) System.out.println("No loss");
+        else System.out.println("Loss");
     }
 
 
